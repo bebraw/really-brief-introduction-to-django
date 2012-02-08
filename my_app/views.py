@@ -7,8 +7,7 @@ def hello(request):
     )
 
 def hello2(request, id=None):
-    target = 'foo'
-    #target = get_object_or_404(models.Person, pk=id).name
+    target = get_object_or_404(models.Person, pk=id).name
 
     return render_to_response('my_app/hello.html',
         {'target': target} # fails silently for names by default
