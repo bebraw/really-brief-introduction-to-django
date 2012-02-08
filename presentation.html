@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+
+<!--
+  Slide System:
+  Authors: Luke Mahé (code)
+           Marcin Wichary (code and design)
+           
+           Dominic Mazzoni (browser compatibility)
+           Charles Chen (ChromeVox support)
+
+  URL: http://code.google.com/p/html5slides/
+-->
+
+<html>
+  <head>
+    <title>Really Brief Introduction to Django</title>
+
+    <meta charset='utf-8'>
+    <script
+      src='http://html5slides.googlecode.com/svn/trunk/slides.js'></script>
+  </head>
+  
+  <style>
+    /* Your individual styles here, or just use inline styles if that’s
+       what you want. */
+    article {
+      background-color: white;
+      background: url(http://koodilehto.fi/images/logo_black.png) 820px 625px no-repeat; /* TODO: point to proper logo */
+    }
+    
+    .source {
+      background-color: white;
+      padding: 0.5em;
+      opacity: 0.9;
+    }
+  </style>
+
+  <body style='display: none'>
+
+    <section class='slides layout-regular'>
+      
+      <!-- Your slides (<article>s) go here. Delete or comment out the
+           slides below. -->
+      
+     <article class='fill'>
+        <h3>
+          Really Brief Introduction to Django
+        </h3>
+       <p style="color:white">
+          Juho Vepsäläinen
+          <br>
+          Feb 9, 2012
+        </p>
+        <p>
+          <img style='margin-left:-7em' height='700' src='http://dl-web.dropbox.com/u/10320/django/wallpaper/magic-pony-django-wallpaper.png'>
+        </p>
+        <div class='source'>
+          <a href="http://dl-web.dropbox.com/u/10320/django/wallpaper/magic-pony-django-wallpaper.png">http://dl-web.dropbox.com/u/10320/django/wallpaper/magic-pony-django-wallpaper.png</a>
+        </div>
+      </article>
+
+      <article class='fill'>
+        <p>
+          <img src='http://farm7.staticflickr.com/6005/5990806060_44eac645b8_b.jpg'>
+        </p>
+        <div class='source'>
+          <a href="http://www.flickr.com/photos/84568447@N00/5990806060/">http://www.flickr.com/photos/84568447@N00/5990806060/</a>
+        </div>
+      </article>
+      
+      <article class='fill'>
+        <p>
+          <img src='http://farm1.staticflickr.com/149/432038560_9f8b830dfe_o.png'>
+        </p>
+        <div class='source'>
+          <a href="http://www.flickr.com/photos/jcroft/432038560/">http://www.flickr.com/photos/jcroft/432038560/</a>
+        </div>
+      </article>
+      
+      <article>
+        <h3>
+          Setting Up a Project
+        </h3>
+        <ul>
+          <li>django-admin.py startproject demo_project</li>
+          <li>cd demo_project</li>
+          <li>django-admin.py startapp my_app</li>
+          <li>chmod +x manage.py </li>
+          <li>./manage.py runserver</li>
+          <li>Surf to localhost:8000</li>
+          <li>Optional: Add "my_app" to settings.py:INSTALLED_APPS</li>
+          <li>Optional: Add "url(r'^my_app/', include('demo_project.my_app.urls'))," to urls.py</li>
+        </ul>
+      </article>
+      
+      <article>
+        <h3>
+          Template
+        </h3>
+        <section>
+        <pre class="lang-html">
+{% extends "my_app/base.html" %}
+{% load i18n %}
+
+{% block content %}
+    {% trans "hello"|title %} {{ target }}!
+
+    &lt;ul&gt;
+    {% for name in names %}
+        &lt;li&gt;{{ name|capfirst }}&lt;/li&gt;
+    {% endfor %}
+    &lt;/ul&gt;
+{% endblock %}
+
+{% block footer %}
+    {{ block.super }}
+
+    {% comment %}Another way{% endcomment %}
+    &lt;ul&gt;{{ names|unordered_list }}&lt;/ul&gt;
+{% endblock %}
+</pre>
+        </section>
+      </article>
+      
+      <article>
+        <h3>
+          View
+        </h3>
+        <section>
+        <pre>
+# my_app/views.py
+from django.shortcuts import get_object_or_404, render_to_response
+import models
+
+def hello(request):
+    return render_to_response('my_app/hello.html',
+        {'target': 'Joe', 'names': ('Abe', 'Tom')}
+    )
+
+def hello2(request, id=None):
+    target = get_object_or_404(models.Person, pk=id).name
+
+    return render_to_response('my_app/hello.html',
+        {'target': target} # fails silently for names by default
+    )
+</pre>
+        </section>
+      </article>
+      
+      <article>
+        <h3>
+          Urls
+        </h3>
+        <section>
+        <pre>
+# my_app/urls.py
+from django.conf.urls.defaults import patterns
+import views
+
+urlpatterns = patterns('',
+    (r'^hello/$', views.hello),
+    (r'^hello/(?P&lt;id&gt;\d+)/$', views.hello2)
+)
+</pre>
+        </section>
+      </article>
+      
+      <article>
+        <h3>
+          Model
+        </h3>
+        <section>
+        <pre>
+# my_app/models.py
+from django.db import models
+
+class Person(models.Model):
+    name = models.CharField(max_length=30)
+
+    def __unicode__(self):
+        return self.name
+
+# creates following DB table after manage.py syncdb
+'''
+CREATE TABLE myapp_person (
+    "id" serial NOT NULL PRIMARY KEY,
+    "name" varchar(30) NOT NULL
+);
+'''
+</pre>
+        </section>
+      </article>
+      
+      <article>
+        <h3>
+          Setting Up a Database
+        </h3>
+        <ul>
+          <li>settings.py:DATABASES engine to "...sqlite3" and name to "db" (or something)</li>
+          <li>./manage.py syncdb</li>
+          <li>Might want to create some dummy admin account while at it</li>
+          <li>Optional: <a href="http://south.aeracode.org/docs/tutorial/index.html">Set up South</a></li>
+        </ul>
+      </article>
+      
+      <article>
+        <h3>
+          Adding Data and Performing Queries
+        </h3>
+        <section>
+        <pre>
+# ./manage.py shell
+>>> from my_app.models import Person
+>>> a = Person(name='Joe')
+>>>
+>>> Person.objects.all()
+[]
+>>> a.save()
+>>>
+>>> Person.objects.all()
+[&lt;Person: Joe&gt;]
+>>>
+>>> Person.objects.filter(name__startswith='J')
+[&lt;Person: Joe&gt;]
+</pre>
+        </section>
+      </article>
+      
+      <article>
+        <h3>
+          ModelForm
+        </h3>
+        <section>
+        <pre>
+# my_app/forms.py
+from django.forms import ModelForm
+import models
+
+class PersonForm(ModelForm):
+    class Meta:
+        model = models.Person
+
+# my_app/views.py
+def create_person(request):
+    form = PersonForm() # normally at else
+    if request.method == 'POST':
+        form = PersonForm(request.POST)
+        if form.is_valid():
+            form.save()
+ 
+    c = {'form': form}
+    c.update(csrf(request))
+    return render_to_response('my_app/create.html', c)
+</pre>
+        </section>
+      </article>
+            
+      <article>
+        <h3>
+          Admin
+        </h3>
+        <ul>
+          <li>Enable at settings.py:INSTALLED_APPS</li>
+          <li>Enable at urls.py</li>
+          <li>Run "syncdb" (./manage.py syncdb)</li>
+        </ul>
+        <section>
+        <pre>
+# my_app/admin.py
+from django.contrib import admin
+from models import Person
+
+class PersonAdmin(admin.ModelAdmin):
+    pass
+
+admin.site.register(Person, PersonAdmin)
+
+# in this case this is ok too
+# admin.site.register(Person)
+</pre>
+        </section>
+      </article>
+
+      <article class='fill'>
+        <p>
+          <img src='http://farm1.staticflickr.com/166/366813484_255d35df1c_o.png'>
+        </p>
+        <div class='source'>
+          <a href="http://www.flickr.com/photos/bootload/366813484/">http://www.flickr.com/photos/bootload/366813484/</a>
+        </div>
+      </article>
+      
+      <article class='fill'>
+        <h3>
+          Overview
+        </h3>
+        <p>
+          <img src='http://farm1.staticflickr.com/96/249168890_b80bb5db6d_b.jpg'>
+        </p>
+        <div class='source'>
+          <a href="http://www.flickr.com/photos/angelocesare/249168890/">http://www.flickr.com/photos/angelocesare/249168890/</a>
+        </div>
+      </article>
+            
+      <article>
+        <h4>Pros</h4>
+        <ul>
+          <li>Just add water (and perhaps some extra packages)</li>
+          <li>Documentation</li>
+          <li>Popular</li>
+        </ul>
+        <h4>Cons</h4>
+        <ul>
+          <li>Perhaps too monolithic</li>
+          <li>Deployment could be easier</li>
+          <li>Surprising limits (ie. no nested admin inlines, i18n update requires server restart and such)</li>
+        </ul>
+      </article>
+      
+      <article>
+        <h3>
+          Pro Tips
+        </h3>
+        <ul>
+          <li>Use <a href="http://vagrantup.com/">Vagrant</a></li>
+          <li>Use <a href="http://pypi.python.org/pypi/virtualenv">virtualenv</a> and <a href="http://www.doughellmann.com/projects/virtualenvwrapper/">virtualenvwrapper</a></li>
+          <li>Explore <a href="http://pypi.python.org/">PyPI</a> and <a href="http://djangopackages.com/">Django Packages</a></li>
+          <li>Utilize <a href="http://pypi.python.org/pypi/pip">pip</a> and requirements.txt</li>
+          <li>When in doubt, REPL and test things (manage.py shell)</li>
+        </ul>
+      </article>
+      
+      <article>
+        <h3>
+          Thank you!
+        </h3>
+        
+        <ul>
+          <li>
+            <a href='http://www.koodilehto.fi'>koodilehto.fi</a>
+          </li>
+        </ul>
+      </article>
+
+    </section>
+
+  </body>
+</html>
